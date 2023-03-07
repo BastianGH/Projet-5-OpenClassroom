@@ -121,6 +121,5 @@ button.addEventListener('click',function () {
             window.localStorage.setItem('panier', panier)
         }
     }
-    //window.localStorage.removeItem('panier')
 });
 
