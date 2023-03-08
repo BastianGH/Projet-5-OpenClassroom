@@ -91,7 +91,7 @@ button.addEventListener('click',function () {
     newProduct.color = chosenColor  
         
     let existingCart = JSON.parse(window.localStorage.getItem('panier'))
-
+// empecher de mettre nimporte quelle quantité 
     if(chosenColor) {
         if(existingCart) {
             let addedProduct = false;

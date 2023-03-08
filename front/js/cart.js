@@ -258,16 +258,19 @@ function checkForm() {
 */
 function sendForm() {
     console.log("vous n'avez pas d'erreurs, votre formulaire va être envoyé !")
-    let contact = [];
+    let contact = {};
     let order = {};
     
 
     for (let i = 0; i<formInputs.length-1; i++) {
-        contact.push(formInputs[i].value) ;
+        contact[formInputs[i].name] = formInputs[i].value ;
     }
     
+    console.log(contact)
     order.contact = contact;
-    order.cart = cart;
+    order.products = cart.map((product) => {
+        return product.id
+    })
 
     console.log(order)
     postObject(order);
@@ -279,7 +282,7 @@ function sendForm() {
     On obtient la réponse de cette requête
 */
 async function postObject(object) {
-    let response = await fetch('/article/fetch/post/user', {
+    let response = await fetch('http://localhost:3000/api/products/order', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json;charset=utf-8'
@@ -288,5 +291,6 @@ async function postObject(object) {
     });
       
     let result = await response.json();
-    alert(result.message);
+
+    window.location.href = `confirmation.html?id=${result.orderId}`;
 }
