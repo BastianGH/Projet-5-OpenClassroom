@@ -71,7 +71,7 @@ colors.addEventListener('change', function() {
 
     Ensuite on veut représenter notre panier dans le localStorage,
     On va dans un premier temps vérifier si le panier est déja crée,
-    On vérifie également que l'utilisateur a bien choisi une couleur :
+    On vérifie également que l'utilisateur a bien choisi une couleur et une quantité valide :
         Si le panier existe déja : 
             On vérifie si le produit concerné y est déja,
             Pour cela on boucle sur notre Array 'panier'
@@ -86,13 +86,18 @@ colors.addEventListener('change', function() {
 button.addEventListener('click',function () {
     let newProduct = {};
     let newQuantity = parseInt(quantityInput.value);
+    let validQuantity = false
     newProduct.id = product._id
     newProduct.quantity = newQuantity
     newProduct.color = chosenColor  
         
     let existingCart = JSON.parse(window.localStorage.getItem('panier'))
-// empecher de mettre nimporte quelle quantité 
-    if(chosenColor) {
+
+    if( 100 > newQuantity && newQuantity > 0 ) {
+        validQuantity = true;
+    }
+
+    if(chosenColor && validQuantity) {
         if(existingCart) {
             let addedProduct = false;
             let oldId
@@ -106,7 +111,6 @@ button.addEventListener('click',function () {
             
             if(addedProduct){
                 existingCart[oldId].quantity += newProduct.quantity;
-                console.log(existingCart)
                 existingCart = JSON.stringify(existingCart);
                 window.localStorage.setItem('panier', existingCart)
             }else {

@@ -1,6 +1,5 @@
 console.clear();
 console.log("ici le cart.js")
-//window.localStorage.removeItem('panier')
 
 
 /* On initialise les variables dont on aura besoin dans tout le code */
@@ -59,6 +58,40 @@ async function showCart() {
     }
 }
 
+/*  Notre fonction pour faire les totaux des quantité et des prix :
+    On sélectionne les balises concernés
+    On créer un objet pour simplifier le code
+    On met/remet les valeurs à 0 au début
+
+    On reboucle sur notre cart :
+        On Rappelle notre API car on aura besoin du prix
+        On converti bien la quantité en nombre pour que tout soit fonctionnel
+        On donne incrémente la quantité dans l'objet qu'on a créer par la quantité du produit dans le panier
+        On incrémente le prix dans l'objet qu'on a crée par le prix du "produit" dans le panier ( la quantité de ce produit x son prix )
+
+    Ensuite on utilise les deux clés de notre objets pour donner les bonnes valeurs
+    attendues dans les balises
+*/
+async function articleSum() {
+    let finalQuantity = document.getElementById('totalQuantity')
+    let finalPrice = document.getElementById('totalPrice')
+    let sum = {};
+    sum.quantity = 0;
+    sum.price = 0;
+
+    for( let i=0; i<cart.length; i++ ) {
+        await getArticle(cart[i].id);
+
+        let productQuantity = parseInt(cart[i].quantity) 
+
+        sum.quantity += productQuantity
+        sum.price += productQuantity * product.price
+    }
+
+    finalQuantity.innerText = sum.quantity;
+    finalPrice.innerText = sum.price;
+}
+
 /*  On a notre fonction pour changer la quantité : 
     On lui passe l'évènemenent 
     On initialise les variables dont on aura besoin pour simplifier le code :
@@ -72,23 +105,28 @@ async function showCart() {
 
     On initialise une variable pour le nouveau panier et
     On change donc le panier dans le localStorage
+    On relance la fonction pour faire le total
 */
 function changeQuantity(event) {
     let input = event.target
     let newQuantity = input.value
-    let product = input.closest('article')
-    let item = {}
-    item.id = product.dataset.id
-    item.color = product.dataset.color
 
-    for(let i = 0; i<cart.length; i++) {
-        if(cart[i].id === item.id && cart[i].color === item.color) {
-            cart[i].quantity = newQuantity
+    if (newQuantity > 0 && newQuantity < 100) {
+        let product = input.closest('article')
+        let item = {}
+        item.id = product.dataset.id
+        item.color = product.dataset.color
+
+        for(let i = 0; i<cart.length; i++) {
+            if(cart[i].id === item.id && cart[i].color === item.color) {
+                cart[i].quantity = newQuantity
+            }
         }
-    }
 
-    let newCart = JSON.stringify(cart);
-    window.localStorage.setItem('panier', newCart)
+        let newCart = JSON.stringify(cart);
+        window.localStorage.setItem('panier', newCart)
+        articleSum();
+    }
 }
 
 /*  On a notre fonction pour supprimer le produit : 
@@ -123,6 +161,7 @@ function deleteItem(event) {
 
 /*  On créer une fonction pour les fonctionnalitées des produits affichés :
     On attends que les éléments aient été générés dynamiquement
+    On lance la fonction pour faire le total
 
     On peut alors créer des variables contenant la liste de nos différents boutons
 
@@ -133,6 +172,7 @@ function deleteItem(event) {
 */
 async function workingCart () {
     await showCart()
+    articleSum();
 
     let quantityInputs = document.querySelectorAll('.itemQuantity')
     let deleteButtons = document.querySelectorAll('.deleteItem')
@@ -272,14 +312,16 @@ function sendForm() {
         return product.id
     })
 
-    console.log(order)
     postObject(order);
 }
 
-/*  fonction pour poster un objet dans l'API :
+/*  Fonction pour poster un objet dans l'API :
     On requête notre API avec la méthode POST et notre objet dans le body
 
     On obtient la réponse de cette requête
+    On supprimme notre objet 'panier' dans le localStorage
+    On redirige l'utilisateur vers la page confirmation
+    avec l'id de commande en jeton dans l'url
 */
 async function postObject(object) {
     let response = await fetch('http://localhost:3000/api/products/order', {
@@ -292,5 +334,6 @@ async function postObject(object) {
       
     let result = await response.json();
 
+    window.localStorage.removeItem('panier')
     window.location.href = `confirmation.html?id=${result.orderId}`;
 }
