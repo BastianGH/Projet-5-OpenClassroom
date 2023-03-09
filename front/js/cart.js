@@ -86,7 +86,7 @@ async function articleSum() {
 
         sum.quantity += productQuantity
         sum.price += productQuantity * product.price
-    }
+    }    
 
     finalQuantity.innerText = sum.quantity;
     finalPrice.innerText = sum.price;
@@ -137,9 +137,14 @@ function changeQuantity(event) {
         Si l'Id et la couleur sont la même que le produit concerné:
             On supprime le produit du panier
 
+    Si le panier ne contient plus qu'un élément :
+        On retire le panier du localStorage
+    Sinon 
+        On initialise une variable pour le nouveau panier
+        On change donc le panier dans le localStorage
+        
     On supprime l'élément concerné dans le DOM
-    On initialise une variable pour le nouveau panier
-    On change donc le panier dans le localStorage
+    On met à jour le total
 */
 function deleteItem(event) {
     let input = event.target
@@ -154,9 +159,15 @@ function deleteItem(event) {
         }
     }
 
+    if (cart.length === 0) {
+        window.localStorage.removeItem('panier')
+    }else {
+        let newCart = JSON.stringify(cart);
+        window.localStorage.setItem('panier', newCart)
+    }
+
     product.remove();
-    let newCart = JSON.stringify(cart);
-    window.localStorage.setItem('panier', newCart)
+    articleSum();
 }
 
 /*  On créer une fonction pour les fonctionnalitées des produits affichés :
