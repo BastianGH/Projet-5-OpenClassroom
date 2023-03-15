@@ -10,6 +10,12 @@ const formInputs = form.querySelectorAll('input');
 const errors = form.querySelectorAll('p');
 let permission 
 
+
+if(!cart) {
+    form.style.display = "none"
+}else {
+    form.style.display = "block"
+}
 /*  On requête l'API afin qu'il nous envoie l'article correspondant à l'ID en question
     La réponse est donc constitué d'un seul objet qui sera la variable 'product'
 */
@@ -27,34 +33,36 @@ async function getArticle(id) {
         On greffe l'article au conteneur 
 */
 async function showCart() {
-    for( let i=0; i<cart.length; i++) {
-        await getArticle(cart[i].id);
-    
-        let article = document.createElement('article');
+    if(cart) {
+        for( let i=0; i<cart.length; i++) {
+            await getArticle(cart[i].id);
+        
+            let article = document.createElement('article');
 
-        article.innerHTML = `<article class="cart__item" data-id="${cart[i].id}" data-color="${cart[i].color}">
-        <div class="cart__item__img">
-          <img src="${product.imageUrl}" alt="${product.altTxt}">
-        </div>
-        <div class="cart__item__content">
-          <div class="cart__item__content__description">
-            <h2>${product.name}</h2>
-            <p>${cart[i].color}</p>
-            <p>${product.price} €</p>
-          </div>
-          <div class="cart__item__content__settings">
-            <div class="cart__item__content__settings__quantity">
-              <p>Qté : </p>
-              <input type="number" class="itemQuantity" name="itemQuantity" min="1" max="100" value="${cart[i].quantity}">
+            article.innerHTML = `<article class="cart__item" data-id="${cart[i].id}" data-color="${cart[i].color}">
+            <div class="cart__item__img">
+            <img src="${product.imageUrl}" alt="${product.altTxt}">
             </div>
-            <div class="cart__item__content__settings__delete">
-              <p class="deleteItem">Supprimer</p>
+            <div class="cart__item__content">
+            <div class="cart__item__content__description">
+                <h2>${product.name}</h2>
+                <p>${cart[i].color}</p>
+                <p>${product.price} €</p>
             </div>
-          </div>
-        </div>
-      </article>`
-    
-        cartSection.appendChild(article)
+            <div class="cart__item__content__settings">
+                <div class="cart__item__content__settings__quantity">
+                <p>Qté : </p>
+                <input type="number" class="itemQuantity" name="itemQuantity" min="1" max="100" value="${cart[i].quantity}">
+                </div>
+                <div class="cart__item__content__settings__delete">
+                <p class="deleteItem">Supprimer</p>
+                </div>
+            </div>
+            </div>
+        </article>`
+        
+            cartSection.appendChild(article)
+        }
     }
 }
 
@@ -79,14 +87,16 @@ async function articleSum() {
     sum.quantity = 0;
     sum.price = 0;
 
-    for( let i=0; i<cart.length; i++ ) {
-        await getArticle(cart[i].id);
-
-        let productQuantity = parseInt(cart[i].quantity) 
-
-        sum.quantity += productQuantity
-        sum.price += productQuantity * product.price
-    }    
+    if(cart) {
+        for( let i=0; i<cart.length; i++ ) {
+            await getArticle(cart[i].id);
+    
+            let productQuantity = parseInt(cart[i].quantity) 
+    
+            sum.quantity += productQuantity
+            sum.price += productQuantity * product.price
+        }
+    }        
 
     finalQuantity.innerText = sum.quantity;
     finalPrice.innerText = sum.price;
@@ -161,6 +171,7 @@ function deleteItem(event) {
 
     if (cart.length === 0) {
         window.localStorage.removeItem('panier')
+        form.style.display = "none"
     }else {
         let newCart = JSON.stringify(cart);
         window.localStorage.setItem('panier', newCart)
@@ -188,10 +199,12 @@ async function workingCart () {
     let quantityInputs = document.querySelectorAll('.itemQuantity')
     let deleteButtons = document.querySelectorAll('.deleteItem')
 
-    for (let i=0; i<cart.length; i++ ) {
-        quantityInputs[i].addEventListener('change', changeQuantity)
-        deleteButtons[i].addEventListener('click', deleteItem)
-    }
+    if(cart) {
+        for (let i=0; i<cart.length; i++ ) {
+            quantityInputs[i].addEventListener('change', changeQuantity)
+            deleteButtons[i].addEventListener('click', deleteItem)
+        }
+    }    
 }
 
 /*  On lance notre fonction */
@@ -317,13 +330,13 @@ function sendForm() {
         contact[formInputs[i].name] = formInputs[i].value ;
     }
     
-    console.log(contact)
     order.contact = contact;
     order.products = cart.map((product) => {
         return product.id
     })
 
     postObject(order);
+    
 }
 
 /*  Fonction pour poster un objet dans l'API :
